@@ -28,4 +28,5 @@ Apps are boring until they have animation in them. Trevo comes with a user frien
 
 <img src="snapshots/1.jpeg" height="400"> <img src="snapshots/2.jpeg" height="400"> <img src="snapshots/3.jpeg" height="400"> <img src="snapshots/4.jpeg" height="400">
 <img src="snapshots/5.jpeg" height="400"> <img src="snapshots/6.jpeg" height="400"> <img src="snapshots/7.jpeg" height="400"> <img src="snapshots/8.jpeg" height="400">
+<img src="snapshots/9.jpeg" height="400"> <img src="snapshots/10.jpeg" height="400">
 
