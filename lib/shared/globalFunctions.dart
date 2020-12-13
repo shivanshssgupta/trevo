@@ -38,3 +38,12 @@ void showNormalFlashBar(String title,String message,BuildContext context){
     leftBarIndicatorColor: Colors.green,
   )..show(context);
 }
+
+String dollarToIntPriceConversion(String dollar)
+{
+  dollar= dollar.replaceAll(",", '');
+  dollar= dollar.substring(2,dollar.length);
+  double t= double.parse(dollar);
+  t= t*73.57;
+  return "Rs "+t.toStringAsFixed(2);
+}

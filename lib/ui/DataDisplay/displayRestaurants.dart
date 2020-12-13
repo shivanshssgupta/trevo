@@ -1,11 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:trevo/Models/restaurants.dart';
 import 'package:trevo/shared/colors.dart';
 import 'package:trevo/ui/Tiles/restaurantTile.dart';
+import 'package:trevo/utils/restaurantsProvider.dart';
 
 class DisplayRestaurants extends StatefulWidget {
   final cityName;
@@ -17,88 +17,44 @@ class DisplayRestaurants extends StatefulWidget {
 }
 
 class _DisplayRestaurantsState extends State<DisplayRestaurants> {
-  int cityId;
-  List addressData = [], nameData = [];
-  List priceData = [];
-  List ratingData = [];
-  List bookingUrlData = [];
-  List imgUrls = [];
-  List cuisinesData = [];
-
-  bool isLoading;
-
-  void getImageUrls() async {
-    if (this.mounted) {
-      setState(() {
-        isLoading = true;
-      });
-    }
-    print("run");
-    var data = await http.get(
-        "https://developers.zomato.com/api/v2.1/cities?q=${widget.cityName}&apikey=e29223875940edb7f8c991066d3392bb");
-    var JSONData = jsonDecode(data.body);
-    final tempList = JSONData["location_suggestions"];
-    cityId = tempList[0]["id"];
-    data = await http.get(
-        "https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&sort=rating&order=desc&apikey=e29223875940edb7f8c991066d3392bb");
-    JSONData = jsonDecode(data.body);
-    List restaurantsData = JSONData["restaurants"];
-    //print(restaurantsData);
-    for (var item in restaurantsData) {
-      nameData.add(item["restaurant"]["name"]);
-      bookingUrlData.add(item["restaurant"]["url"]);
-      addressData.add(item["restaurant"]["location"]["locality_verbose"]);
-      ratingData.add(
-          item["restaurant"]["user_rating"]["aggregate_rating"].toString());
-      cuisinesData.add(item["restaurant"]["cuisines"]);
-      priceData.add(item["restaurant"]["currency"] +
-          " " +
-          item["restaurant"]["average_cost_for_two"].toString());
-      if (item["restaurant"]["featured_image"] != "") {
-        imgUrls.add(item["restaurant"]["featured_image"]);
-      } else {
-        imgUrls.add(item["restaurant"]["thumb"]);
-      }
-
-      //print(item["restaurant"]["name"]+item["restaurant"]["url"]+item["restaurant"]["location"]["address"]+item["restaurant"]["user_rating"]["aggregate_rating"]+item["restaurant"]["photos_url"]);
-
-    }
-    if (this.mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    getImageUrls();
-
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
+    RestaurantsProvider restaurantsProvider =
+        Provider.of<RestaurantsProvider>(context);
     return Container(
-      color: LightGrey,
-      child: isLoading == true
-          ? Center(
-              child: SpinKitCircle(color: BottleGreen),
-            )
-          : ListView.builder(
-              itemBuilder: (_, index) {
-                return RestaurantTile(
-                  name: nameData[index],
-                  address: addressData[index],
-                  rating: ratingData[index],
-                  bookingUrl: bookingUrlData[index],
-                  imgUrl: imgUrls[index],
-                  cuisine: cuisinesData[index],
-                  price: priceData[index],
-                );
-              },
-              itemCount: nameData.length,
-            ),
-    );
+        color: LightGrey,
+        child: restaurantsProvider.isLoading() == false
+            ? restaurantsProvider.restaurantAPI.totalCount != null &&
+                    restaurantsProvider.restaurantAPI.totalCount != 0
+                ? ListView.builder(
+                    itemBuilder: (_, index) {
+                      Restaurants temp =
+                          restaurantsProvider.restaurantAPI.restaurants[index];
+                      return RestaurantTile(
+                        name: temp.restaurantName,
+                        address: temp.address,
+                        rating: temp.rating,
+                        bookingUrl: temp.bookingUrl,
+                        imgUrl: temp.imgUrl,
+                        cuisine: temp.cuisine,
+                        price: temp.price,
+                      );
+                    },
+                    itemCount: restaurantsProvider.restaurantAPI.totalCount,
+                  )
+                : Center(
+                    child: Text(
+                      'We don\'t have this city in our database yet! We are working on adding more cities.\n Until then try looking for other cities.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Teal.withOpacity(0.8),
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Montserrat',
+                          fontSize: 22),
+                    ),
+                  )
+            : Center(
+                child: SpinKitCircle(color: BottleGreen),
+              ));
   }
 }

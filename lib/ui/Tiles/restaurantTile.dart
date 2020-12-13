@@ -18,7 +18,7 @@ class RestaurantTile extends StatelessWidget {
   Widget build(BuildContext context) {
     print(rating);
     return InkWell(
-      onTap: (){
+      onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => DisplayLink(

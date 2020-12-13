@@ -28,11 +28,12 @@ class _HomeState extends State<Home> {
       onMessage: (Map<String, dynamic> message) async {
         print("on: $message");
         final notification = message['notification'];
-        try{
+        try {
           Future.delayed(Duration.zero, () {
-            showNormalFlashBar(notification['title'],notification['body'],context);
+            showNormalFlashBar(
+                notification['title'], notification['body'], context);
           });
-        }catch(e){
+        } catch (e) {
           print(e);
         }
       },
@@ -55,12 +56,12 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final locationProvider = Provider.of<LocationProviderClass>(context);
-    final placesProvider = Provider.of<PlacesProvider>(context);
+    final placesProvider = Provider.of<PlacesProvider>(context, listen: false);
     return SafeArea(
       child: Scaffold(
           backgroundColor: LightGrey,
           floatingActionButton: FloatingActionButton(
-            heroTag: 'animation2',
+              heroTag: 'animation2',
               elevation: 10,
               onPressed: () {
                 Navigator.of(context)
@@ -124,8 +125,13 @@ class _HomeState extends State<Home> {
             elevation: 10,
           ),
           body: (currentIndex == 0)
-              ? DashBoard(placesProvider: placesProvider,locationProvider: locationProvider,)
-              : (currentIndex == 1) ? Feed() : Profile()),
+              ? DashBoard(
+                  placesProvider: placesProvider,
+                  locationProvider: locationProvider,
+                )
+              : (currentIndex == 1)
+                  ? Feed()
+                  : Profile()),
     );
   }
 }

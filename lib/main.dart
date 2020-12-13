@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import 'package:trevo/ui/Home/home.dart';
 import 'package:trevo/ui/onBoard/onBoard.dart';
 import 'package:trevo/utils/auth.dart';
+import 'package:trevo/utils/hotelsProvider.dart';
 import 'package:trevo/utils/locationProvider.dart';
 import 'package:trevo/utils/placesProvider.dart';
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trevo/utils/restaurantsProvider.dart';
 
 List<CameraDescription> cameras;
 String cityName;
@@ -19,15 +21,15 @@ double longitude;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try{
+  try {
     bool isLocationServiceEnabled = await Geolocator.isLocationServiceEnabled();
     if (isLocationServiceEnabled) {
       final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.low);
       var currentUserLatLong =
-      new Coordinates(position.latitude, position.longitude);
+          new Coordinates(position.latitude, position.longitude);
       final address =
-      await Geocoder.local.findAddressesFromCoordinates(currentUserLatLong);
+          await Geocoder.local.findAddressesFromCoordinates(currentUserLatLong);
 
       final first = address.first;
       cityName = first.locality;
@@ -39,8 +41,8 @@ Future<void> main() async {
       latitude = 28.6129;
       longitude = 77.2295;
     }
-  }catch(e){
-    print('main.dart-Exception: '+e);
+  } catch (e) {
+    print('main.dart-Exception: ' + e);
     cityName = "Delhi";
     latitude = 28.6129;
     longitude = 77.2295;
@@ -56,17 +58,16 @@ Future<void> main() async {
   });
 }
 
-
 Future<bool> checkInitialRoute() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.containsKey('uid');
 }
 
-
 class MyApp extends StatelessWidget {
   final initialRoute;
 
   const MyApp({Key key, this.initialRoute}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -79,6 +80,12 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<PlacesProvider>(
           create: (_) => PlacesProvider(cityName),
+        ),
+        ChangeNotifierProvider<HotelsProvider>(
+          create: (_) => HotelsProvider(cityName),
+        ),
+        ChangeNotifierProvider<RestaurantsProvider>(
+          create: (_) => RestaurantsProvider(cityName),
         ),
         StreamProvider(
           create: (context) => context.read<AuthService>().authStateChange,

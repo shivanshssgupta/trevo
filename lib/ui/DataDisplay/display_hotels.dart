@@ -1,86 +1,56 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:trevo/Models/hotels.dart';
 import 'package:trevo/shared/colors.dart';
 import 'package:trevo/ui/Tiles/hotelTile.dart';
+import 'package:trevo/utils/hotelsProvider.dart';
 
 class DisplayHotels extends StatefulWidget {
-  final cityName;
+  final hotelsProvider;
 
-  DisplayHotels(this.cityName);
+  const DisplayHotels({Key key, this.hotelsProvider}) : super(key: key);
 
   @override
   _DisplayHotelsState createState() => _DisplayHotelsState();
 }
 
 class _DisplayHotelsState extends State<DisplayHotels> {
-  List distanceData = [], hotelNameData = [];
-  List priceData = [];
-  List<List<dynamic>> imgUrls = new List<List<dynamic>>();
-  List bookingUrls = [];
-  String query = "hotel";
-  bool isLoading;
-
-  void getImageUrls() async {
-    if (this.mounted) {
-      setState(() {
-        isLoading = true;
-      });
-    }
-    print("run");
-    final data = await http
-        .get("https://trevo-server.herokuapp.com/hotels/${widget.cityName}");
-    final JSONData = jsonDecode(data.body);
-    List hotelsListData = JSONData["places"];
-    for (var item in hotelsListData) {
-      hotelNameData.add(item["hotelName"]);
-      imgUrls.add(item["pictures"]);
-      distanceData.add(item["distance"]);
-      String temp= item["price"];
-      temp= temp.replaceAll(",", '');
-      temp= temp.substring(2,temp.length);
-      double t= double.parse(temp);
-      t= t*73.57;
-      priceData.add("Rs "+t.toStringAsFixed(2));
-      bookingUrls.add(item["viewDealLink"]);
-    }
-
-    if (this.mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    getImageUrls();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final hotelProvider = Provider.of<HotelsProvider>(context);
+
     return Container(
       color: LightGrey,
-      child: isLoading == true
-          ? Center(
+      child: hotelProvider.isLoading() == false
+          ? hotelProvider.hotelAPI.totalCount != 0 &&
+                  hotelProvider.hotelAPI.totalCount != null
+              ? ListView.builder(
+                  itemBuilder: (_, index) {
+                    Hotels temp = hotelProvider.hotelAPI.hotels[index];
+                    return HotelTile(
+                      hotelName: temp.hotelName,
+                      imgUrl: temp.imgUrls,
+                      hotelPrice: temp.price,
+                      bookingUrl: temp.bookingUrl,
+                    );
+                  },
+                  itemCount: hotelProvider.hotelAPI.totalCount,
+                )
+              : Center(
+                  child: Text(
+                    'We don\'t have this city in our database yet! We are working on adding more cities.\n Until then try looking for other cities.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Teal.withOpacity(0.8),
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'Montserrat',
+                        fontSize: 22),
+                  ),
+                )
+          : Center(
               child: SpinKitCircle(color: BottleGreen),
-            )
-          : ListView.builder(
-              itemBuilder: (_, index) {
-                return HotelTile(
-                  hotelName: hotelNameData[index],
-                  imgUrl: imgUrls[index],
-                  hotelPrice: priceData[index],
-                  bookingUrl: bookingUrls[index],
-                );
-              },
-              itemCount: hotelNameData.length,
             ),
     );
   }

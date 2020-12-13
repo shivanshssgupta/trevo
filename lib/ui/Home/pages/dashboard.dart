@@ -6,8 +6,10 @@ import 'package:trevo/ui/DataDisplay/displayPlaces.dart';
 import 'package:trevo/ui/DataDisplay/displayRestaurants.dart';
 import 'package:trevo/ui/DataDisplay/display_hotels.dart';
 import 'package:trevo/ui/Home/pages/cameraTab.dart';
+import 'package:trevo/utils/hotelsProvider.dart';
 import 'package:trevo/utils/locationProvider.dart';
 import 'package:trevo/utils/placesProvider.dart';
+import 'package:trevo/utils/restaurantsProvider.dart';
 
 class DashBoard extends StatefulWidget {
   final placesProvider, locationProvider;
@@ -42,7 +44,10 @@ class _DashBoardState extends State<DashBoard>
   @override
   Widget build(BuildContext context) {
     final locationProvider = Provider.of<LocationProviderClass>(context);
-    final placesProvider = Provider.of<PlacesProvider>(context);
+    final placesProvider = Provider.of<PlacesProvider>(context, listen: false);
+    final hotelsProvider = Provider.of<HotelsProvider>(context, listen: false);
+    final restaurantsProvider =
+        Provider.of<RestaurantsProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: LightGrey,
       appBar: AppBar(
@@ -60,6 +65,8 @@ class _DashBoardState extends State<DashBoard>
                   if (result != null) {
                     locationProvider.setCityName(result);
                     placesProvider.fetchAttractions(result);
+                    hotelsProvider.fetchHotels(result);
+                    restaurantsProvider.fetchRestaurants(result);
                   }
                 },
               ),
@@ -150,7 +157,7 @@ class _DashBoardState extends State<DashBoard>
             placesProvider: placesProvider,
             cityName: locationProvider.cityName,
           ),
-          DisplayHotels(locationProvider.cityName),
+          DisplayHotels(hotelsProvider: hotelsProvider),
           DisplayRestaurants(locationProvider.cityName),
         ],
       ),
@@ -289,12 +296,12 @@ class DataSearch extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-
     final suggestions = query.isEmpty
         ? cities
         : cities
             .where((element) =>
-                element.toLowerCase().contains(query) && element.toLowerCase().startsWith(query))
+                element.toLowerCase().contains(query) &&
+                element.toLowerCase().startsWith(query))
             .toList();
 
     return ListView.builder(
